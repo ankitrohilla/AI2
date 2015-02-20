@@ -115,11 +115,109 @@ main() {
         }
 
 
+//        for vertices with index lower than current one, create new sets until all are finished
+        vector< set<int> > newSets;
+        while( !leftVertices.empty() ) {
+
+            for_each( subgraphs.begin(), subgraphs.end(), [&](set<int> s){
+                set<int> temp;
+                temp.insert(i);
+                for_each( s.begin(), s.end(), [&](int p){
+                    vecIntIterator adjvIt = find( currentVertex.adjList.begin(), currentVertex.adjList.end(), p);
+                    vecIntIterator lefvIt = find( leftVertices.begin(), leftVertices.end(), p);
+
+                    if( adjvIt != currentVertex.adjList.end() ) {
+                        temp.insert(p);
+                        if( lefvIt != leftVertices.end() )
+                            leftVertices.erase( lefvIt );
+                    }
+
+                });
+                if( temp.size()>1 )
+                    newSets.push_back(temp);
+            });
+
+            for_each( newSets.begin(), newSets.end(), [&](set<int> s){
+                subgraphs.push_back( s );
+            });
+            newSets.clear();
+
+        }
+
         cout << endl;
         cout << i << " -> ";
         for_each( leftVertices.begin(), leftVertices.end(), [](int i){cout<<i;});
 
-//        for vertices with index lower than current one, create new sets until all are finished
+
+        cout << "\nSets - ";
+        for_each( subgraphs.begin(), subgraphs.end(), [](set<int> s) {
+            cout << "{ ";
+            for_each( s.begin(), s.end(), [](int i){cout << i << ",";});
+            cout << "}, ";
+        });
 
     }
+
+    cout << "\nNumber of sets - " << subgraphs.size();
+
+//    remove duplicate and subsets of sets
+    bool noRedundancy = true;
+    while( noRedundancy ) {
+
+//        compare each set to each set
+        for( vecSetIntIterator currentvsIt = subgraphs.begin(); currentvsIt != subgraphs.end()-1; currentvsIt++ ) {
+            for( vecSetIntIterator comparevsIt = currentvsIt+1; comparevsIt != subgraphs.end(); comparevsIt++ ) {
+
+                if( (*comparevsIt).size() < 2 ) {
+                    goto DONE;
+                }
+
+                cout << "\n2 sets -> \n";
+                cout << "{ ";
+                for_each( (*currentvsIt).begin(), (*currentvsIt).end(), [](int i){cout << i << ",";});
+                cout << "}, ";
+                cout << "{ ";
+                for_each( (*comparevsIt).begin(), (*comparevsIt).end(), [](int i){cout << i << ",";});
+                cout << "}";
+
+                if( includes( (*currentvsIt).begin(), (*currentvsIt).end(), (*comparevsIt).begin(), (*comparevsIt).end() ) ) {
+
+                    cout << "\nDeleting comparevsIt { ";
+                    for_each( (*comparevsIt).begin(), (*comparevsIt).end(), [](int i){cout << i << ",";});
+                    cout << "}, ";
+
+                    subgraphs.erase( comparevsIt );
+
+                    comparevsIt--;
+
+                    cout << "\ncomparevsIt after deletion { ";
+                    for_each( (*comparevsIt).begin(), (*comparevsIt).end(), [](int i){cout << i << ",";});
+                    cout << "}, ";
+
+
+                } else if( includes( (*comparevsIt).begin(), (*comparevsIt).end(), (*currentvsIt).begin(), (*currentvsIt).end() ) ) {
+
+                    cout << "\nDeleting currentvsIt { ";
+                    for_each( (*currentvsIt).begin(), (*currentvsIt).end(), [](int i){cout << i << ",";});
+                    cout << "}, ";
+
+                    subgraphs.erase( currentvsIt );
+                }
+
+            }
+        }
+    }
+
+    DONE:
+
+    cout << "\nSets - ";fflush(stdout);
+    for_each( subgraphs.begin(), subgraphs.end(), [](set<int> s) {
+        cout << "{ ";
+        for_each( s.begin(), s.end(), [](int i){cout << i << ",";});
+        cout << "}, ";
+    });
+
+    cout << "\nNumber of sets - " << subgraphs.size();
+
+    cout << endl;
 }
