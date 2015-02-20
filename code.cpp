@@ -25,19 +25,14 @@ class vertex {
 
 };
 
-//order on the basis on number of elements
-bool order( set<int> s1, set<int> s2 ) {
-    return s1.size() > s2.size();
-}
-
 vector<vertex> vertices;
 set<int> discoveredVertices;
 
-set< set<int>, bool(*)(set<int>,set<int>) > subgraphs(order);
+vector< set<int> > subgraphs;
 
 typedef set<int>::iterator setIntIterator;
 typedef vector<int>::iterator vecIntIterator;
-typedef set< set<int>, bool(*)(set<int>,set<int>) >::iterator setSetIntIterator;
+typedef vector< set<int> >::iterator vecSetIntIterator;
 
 main() {
 
@@ -72,11 +67,14 @@ main() {
         vector<int> leftVertices;
         vecIntIterator vIt = currentVertex.adjList.begin();
 
-        while( *vIt < i ) {
+        while( *vIt < i && vIt != currentVertex.adjList.end() ) {
             leftVertices.push_back( *vIt );
             vIt++;
         }
 
+        cout << endl;
+        cout << i << " -> ";
+        for_each( leftVertices.begin(), leftVertices.end(), [](int i){cout<<i;});
 
 //        add all its neighbour and itself to discovered set if not already
         bool isNewDiscovered = false;
@@ -93,11 +91,11 @@ main() {
         if( isNewDiscovered ) {
             set<int> temp;
             temp.insert(i);
-            subgraphs.insert(temp);
+            subgraphs.push_back(temp);
         }
 
 //        accomodate this vertex to all compatible sets
-        for( setSetIntIterator it = subgraphs.begin(); it != subgraphs.end(); it++ ) {
+        for( vecSetIntIterator it = subgraphs.begin(); it != subgraphs.end(); it++ ) {
             bool isCompatible = all_of( (*it).begin(), (*it).end(), [&](int i){
                 vecIntIterator sIt = find( currentVertex.adjList.begin(), currentVertex.adjList.end(), i);
                 if( sIt != currentVertex.adjList.end() )
@@ -106,13 +104,20 @@ main() {
                     return false;
             });
 
-//            if( isCompatible )
-//                (*it).insert( i );
+            if( isCompatible ) {
+                for_each( (*it).begin(), (*it).end(), [&](int s) {
+                    vecIntIterator vIt = find( leftVertices.begin(), leftVertices.end(), s);
+                    if( vIt != leftVertices.end() )
+                        leftVertices.erase( vIt );
+                } );
+                (*it).insert( i );
+            }
         }
 
-        (*subgraphs.begin()).insert(5);
 
-
+        cout << endl;
+        cout << i << " -> ";
+        for_each( leftVertices.begin(), leftVertices.end(), [](int i){cout<<i;});
 
 //        for vertices with index lower than current one, create new sets until all are finished
 
