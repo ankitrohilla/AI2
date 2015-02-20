@@ -1,0 +1,14 @@
+K different drug agencies
+
+undirected graph G
+output K subgraphs G1, G2, ... Gk
+union of all subgraphs = G
+G only has one connected component
+
+Convert problem into CNF-SAT
+
+miniSAT will solve the SAT problem and we will take that SAT assignment and convert it into K complete subgraphs.
+
+Output those subgraphs.
+
+
