@@ -72,10 +72,6 @@ main() {
             vIt++;
         }
 
-        cout << endl;
-        cout << i << " -> ";
-        for_each( leftVertices.begin(), leftVertices.end(), [](int i){cout<<i;});
-
 //        add all its neighbour and itself to discovered set if not already
         bool isNewDiscovered = false;
 
@@ -156,31 +152,23 @@ main() {
             cout << "}, ";
         });
 
-    }
-
-    cout << "\nNumber of sets - " << subgraphs.size();
-
-//    remove duplicate and subsets of sets
-    bool noRedundancy = true;
-    while( noRedundancy ) {
-
-//        compare each set to each set
         for( vecSetIntIterator currentvsIt = subgraphs.begin(); currentvsIt != subgraphs.end()-1; currentvsIt++ ) {
             for( vecSetIntIterator comparevsIt = currentvsIt+1; comparevsIt != subgraphs.end(); comparevsIt++ ) {
-
                 if( (*comparevsIt).size() < 2 ) {
-                    goto DONE;
+                    goto DONE_ITERATION;
                 }
 
-                cout << "\n2 sets -> \n";
-                cout << "{ ";
-                for_each( (*currentvsIt).begin(), (*currentvsIt).end(), [](int i){cout << i << ",";});
-                cout << "}, ";
-                cout << "{ ";
-                for_each( (*comparevsIt).begin(), (*comparevsIt).end(), [](int i){cout << i << ",";});
-                cout << "}";
 
-                if( includes( (*currentvsIt).begin(), (*currentvsIt).end(), (*comparevsIt).begin(), (*comparevsIt).end() ) ) {
+                if( includes( (*currentvsIt).begin(), (*currentvsIt).end(), (*comparevsIt).begin(), (*comparevsIt).end() ) &&
+                    includes( (*comparevsIt).begin(), (*comparevsIt).end(), (*currentvsIt).begin(), (*currentvsIt).end() ) ) {
+
+                    cout << "\n2 sets -> \n";
+                    cout << "{ ";
+                    for_each( (*currentvsIt).begin(), (*currentvsIt).end(), [](int i){cout << i << ",";});
+                    cout << "}, ";
+                    cout << "{ ";
+                    for_each( (*comparevsIt).begin(), (*comparevsIt).end(), [](int i){cout << i << ",";});
+                    cout << "}";
 
                     cout << "\nDeleting comparevsIt { ";
                     for_each( (*comparevsIt).begin(), (*comparevsIt).end(), [](int i){cout << i << ",";});
@@ -194,16 +182,85 @@ main() {
                     for_each( (*comparevsIt).begin(), (*comparevsIt).end(), [](int i){cout << i << ",";});
                     cout << "}, ";
 
+                }
+            }
+        }
+
+        DONE_ITERATION:
+
+        cout << "\nSets after duplicate removal - ";
+        for_each( subgraphs.begin(), subgraphs.end(), [](set<int> s) {
+            cout << "{ ";
+            for_each( s.begin(), s.end(), [](int i){cout << i << ",";});
+            cout << "}, ";
+        });
+    }
+
+    cout << "\nNumber of sets - " << subgraphs.size();
+    fflush(stdout);
+
+//    remove subsets of sets
+    bool isRedundancy = true;
+    while( isRedundancy ) {
+
+        isRedundancy = false;
+
+//        compare each set to each set
+        for( vecSetIntIterator currentvsIt = subgraphs.begin(); currentvsIt != subgraphs.end()-1; currentvsIt++ ) {
+            cout << "\nChecking subsets for set number " << currentvsIt-subgraphs.begin();
+            cout << " -> { ";
+            for_each( (*currentvsIt).begin(), (*currentvsIt).end(), [](int i){cout << i << ",";});
+            cout << "},";
+            for( vecSetIntIterator comparevsIt = currentvsIt+1; comparevsIt != subgraphs.end(); comparevsIt++ ) {
+                if( (*comparevsIt).size() < 2 ) {
+                    goto DONE;
+                }
+
+                if( includes( (*currentvsIt).begin(), (*currentvsIt).end(), (*comparevsIt).begin(), (*comparevsIt).end() ) ) {
+
+                    cout << "\n2 sets -> \n";
+                    cout << "{ ";
+                    for_each( (*currentvsIt).begin(), (*currentvsIt).end(), [](int i){cout << i << ",";});
+                    cout << "}, ";
+                    cout << "{ ";
+                    for_each( (*comparevsIt).begin(), (*comparevsIt).end(), [](int i){cout << i << ",";});
+                    cout << "}";
+
+
+                    isRedundancy= true;
+
+                    cout << "\nDeleting comparevsIt { ";
+                    for_each( (*comparevsIt).begin(), (*comparevsIt).end(), [](int i){cout << i << ",";});
+                    cout << "}, ";
+
+                    subgraphs.erase( comparevsIt );
+
+                    comparevsIt--;
+
+                    cout << "\ncomparevsIt after deletion { ";
+                    for_each( (*comparevsIt).begin(), (*comparevsIt).end(), [](int i){cout << i << ",";});
+                    cout << "}, \n";
+
 
                 } else if( includes( (*comparevsIt).begin(), (*comparevsIt).end(), (*currentvsIt).begin(), (*currentvsIt).end() ) ) {
 
-                    cout << "\nDeleting currentvsIt { ";
+                    cout << "\n2 sets -> \n";
+                    cout << "{ ";
                     for_each( (*currentvsIt).begin(), (*currentvsIt).end(), [](int i){cout << i << ",";});
                     cout << "}, ";
+                    cout << "{ ";
+                    for_each( (*comparevsIt).begin(), (*comparevsIt).end(), [](int i){cout << i << ",";});
+                    cout << "}";
+
+
+                    isRedundancy= true;
+
+                    cout << "\nDeleting currentvsIt { ";
+                    for_each( (*currentvsIt).begin(), (*currentvsIt).end(), [](int i){cout << i << ",";});
+                    cout << "}, \n";
 
                     subgraphs.erase( currentvsIt );
                 }
-
             }
         }
     }
@@ -218,6 +275,17 @@ main() {
     });
 
     cout << "\nNumber of sets - " << subgraphs.size();
-
+    fflush(stdout);
     cout << endl;
+
+    // PRINT TO OUTPUT FILE
+    for( int i = 0; i <  subgraphs.size(); i++ ) {
+        cout << "\n#" << i+1 << " " << subgraphs[i].size() << endl;
+        for( setIntIterator it = subgraphs[i].begin(); it != subgraphs[i].end(); it++ ) {
+            if( it != subgraphs[i].begin() )
+                cout << " ";
+                cout << *it;
+        }
+    }
+
 }
